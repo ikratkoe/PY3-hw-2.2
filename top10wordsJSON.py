@@ -19,6 +19,16 @@
 import json
 import re
 import collections
+import chardet
+
+flist = [ "newsfr.json" , "newsit.json" , "newsafr.json" , "newscy.json" ]
+
+# распознование кодировки
+def check_encoding(fname):
+    rawdata = open(fname, "rb").read()
+    result = chardet.detect(rawdata)
+    return result['encoding']
+
 
 def modify_list(l):
     index =[]  # список индексов на удаление
@@ -35,27 +45,58 @@ def prnt_10_most_common(lst):
         c[word] += 1
     for i in range(10):
         print(*c.most_common(10)[i])
+    print()
 
-text = ""
+def parseme(fname):
+    text = ""
+    cod = check_encoding(fname)
+    print(fn, cod)
+    with open(fn, encoding=cod) as f:
+        data = json.load(f)
+    if  type(data['rss']["channel"]["item"][0]["description"]) != str :
+        for i in range(len(data['rss']["channel"]["item"])):
+            text += data['rss']["channel"]["item"][i]["description"]["__cdata"] + ' '
+    else :
+        for i in range(len(data['rss']["channel"]["item"])):
+            text += data['rss']["channel"]["item"][i]["description"] + ' '
 
-with open("newsit.json" , encoding="cp1251") as f:
-    data = json.load(f, encoding="cp1251")
-for i in range(len(data['rss']["channel"]["item"])):
-    text += data['rss']["channel"]["item"][i]["description"] + ' '
-
-with open("newsafr.json" , encoding="utf8") as f:
-    data = json.load(f, encoding="utf8")
-for i in range(len(data['rss']["channel"]["item"])):
-    text += data['rss']["channel"]["item"][i]["description"]["__cdata"]
+    lst = re.findall(r"\w+", text)
+    modify_list(lst)
+    prnt_10_most_common(lst)
 
 
-with open("newscy.json" , encoding="koi8_r") as f:
-    data = json.load(f, encoding="koi8_r")
-for i in range(len(data['rss']["channel"]["item"])):
-    text += data['rss']["channel"]["item"][i]["description"]["__cdata"]
+#
+#
+# text = ""
+#
+# with open("newsfr.json" , encoding="iso-8859-5") as f:
+#     data = json.load(f, encoding="cp1251")
+# for i in range(len(data['rss']["channel"]["item"])):
+#     text += data['rss']["channel"]["item"][i]["description"]["__cdata"]  + ' '
+#
+#
+# with open("newsit.json" , encoding="cp1251") as f:
+#     data = json.load(f, encoding="cp1251")
+# for i in range(len(data['rss']["channel"]["item"])):
+#     text += data['rss']["channel"]["item"][i]["description"] + ' '
+#
+# with open("newsafr.json" , encoding="utf8") as f:
+#     data = json.load(f, encoding="utf8")
+# for i in range(len(data['rss']["channel"]["item"])):
+#     text += data['rss']["channel"]["item"][i]["description"]["__cdata"]
+#
+#
+# with open("newscy.json" , encoding="koi8_r") as f:
+#     data = json.load(f, encoding="koi8_r")
+# for i in range(len(data['rss']["channel"]["item"])):
+#     text += data['rss']["channel"]["item"][i]["description"]["__cdata"]
+#
 
-lst = re.findall(r"\w+", text)
 
-modify_list(lst)
-prnt_10_most_common(lst)
+for fn in flist:
+    parseme(fn)
+
+
+
+
 
